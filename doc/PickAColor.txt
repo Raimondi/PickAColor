@@ -1,5 +1,5 @@
 
-*PickAColor.txt* Working with colors should be nice.                     v.1.0
+*PickAColor.txt* Working with colors should be nice.                     v.1.1
 
 
                               REFERENCE MANUAL *PickAColor*
@@ -299,6 +299,14 @@ POSSIBILITY OF SUCH DAMAGE.
  10. HISTORY                                               *PickAColorHistory*
 
   Version      Date      Release notes                                       ~
+|---------|------------|-----------------------------------------------------|
+
+    1.1     2010-03-23   - Fixed some typos and extra-output. Thanks to Steve
+                           Huff.
+                         - If GTK is not available and the plug-in is not
+                           running under Mac OS X, the commands will work with
+                           color names.
+
 |---------|------------|-----------------------------------------------------|
 
     1.0     2010-03-21   Initial upload.

@@ -1,6 +1,6 @@
 " Name:    PickAColor
 " Author:  Israel Chauca F.
-" Version: 1.0
+" Version: 1.1
 " License: Released under the BSD license, read :h PickAColorLicense for the
 "          actual license.
 "          http://www.opensource.org/licenses/bsd-license.php
@@ -26,7 +26,7 @@
 
 " Vim 7.2 or later.
 if v:version < 702
-	echoerr "PickAColor: this plugin requires vim >= 7!"
+	echoerr "PickAColor: this plugin requires vim >= 7.2!"
 	finish
 endif
 
@@ -39,6 +39,7 @@ let g:loaded_pickacolor = 1
 let s:quit = ""
 let s:activate = ""
 let s:mac = 0
+let s:no_gui = 0
 
 " Check if running on a mac.
 if has("gui_macvim") && has('gui_running')
@@ -59,13 +60,14 @@ endif
 
 " If not on a mac, must have python.
 if s:mac == 0 && !has('python')
-  finish
+    let s:no_gui = 1
 endif
 
 " If has python, we need the gtk module.
 if system('python -c "import gtk"') != ''
-  finish
+  let s:no_gui = 1
 endif
+
 
 " The color to be loaded if not editing an existing color.
 let s:default_color = exists('g:pickacolor_default_color') ? g:pickacolor_default_color : '#888888'
@@ -118,7 +120,7 @@ function! RetrieveAColor(where, what) " {{{
         normal! 2b
         normal! y2w
       endif
-      echom 'reg: ' . @"
+      "echom 'reg: ' . @"
       let color_hex = substitute(@", '.*\(#[0-9a-fA-F]\+\).*', '\1','')  " all the hexcode including '#'
       if color_hex =~ '^#[0-9a-fA-F]\+$'
         let result = HEX2RGB(color_hex)
@@ -147,7 +149,7 @@ endfunction "}}}
 function! ReplaceAColor(color) " {{{
   let s:save_cursor = getpos('.') " save cursor position
   let save_reg = @" " backup the unnamed register
-  echom a:color
+  "echom a:color
   if s:replacing_name
     normal! e
     normal! b
@@ -291,7 +293,7 @@ function! GetAColor(name, fmt) "{{{1
         exec "return g:color_names_values." . name . "." . a:fmt
       endif
     else
-      echoerr name . " is no a color name!"
+      echoerr name . " is not a color name!"
       return ""
     endif
   endif
@@ -354,7 +356,7 @@ function! HEX2RGB(hex) " {{{1
   endif
   let l = len(hex)
   if (l - (3*(l/3))) != 0 " l mod 3
-    "echoerr "HEX2RGB: '" . a:hex . "' is a bad formatted string."
+    "echoerr "HEX2RGB: '" . a:hex . "' is a badly formatted string."
     return []
   endif
   let l = l/3
@@ -381,10 +383,10 @@ function! InsertAColor(name, fmt) "{{{1
     let @* = output
   endif
   if s:replacing_name || s:replacing_hex
-    echom 'Replacing' . s:replacing_name . s:replacing_hex
+    "echom 'Replacing' . s:replacing_name . s:replacing_hex
     call ReplaceAColor(output)
   else
-    echom 'Apending'
+    "echom 'Appending'
     exe "normal! a" . output . "\<Esc>"
   endif
   return ''
@@ -1222,10 +1224,18 @@ endif
 " List of color names:
 let color_names = sort(keys(color_names_values))
 
-command! -complete=customlist,PickAName -nargs=* PickRGB :call InsertAColor('<args>', "rgb")
-command! -complete=customlist,PickAName -nargs=* PickHEX :call InsertAColor('<args>', "hex")
-command! -complete=customlist,PickAName -nargs=* PickHSL :call InsertAColor('<args>', "hsl")
-command! -complete=customlist,PickAName -nargs=* PickRAW :call InsertAColor('<args>', "raw")
+if s:no_gui
+  " Do not try to open color chooser dialog.
+  command! -complete=customlist,PickAName -nargs=+ PickRGB :call InsertAColor('<args>', "rgb")
+  command! -complete=customlist,PickAName -nargs=+ PickHEX :call InsertAColor('<args>', "hex")
+  command! -complete=customlist,PickAName -nargs=+ PickHSL :call InsertAColor('<args>', "hsl")
+  command! -complete=customlist,PickAName -nargs=+ PickRAW :call InsertAColor('<args>', "raw")
+else
+  command! -complete=customlist,PickAName -nargs=* PickRGB :call InsertAColor('<args>', "rgb")
+  command! -complete=customlist,PickAName -nargs=* PickHEX :call InsertAColor('<args>', "hex")
+  command! -complete=customlist,PickAName -nargs=* PickHSL :call InsertAColor('<args>', "hsl")
+  command! -complete=customlist,PickAName -nargs=* PickRAW :call InsertAColor('<args>', "raw")
+endif
 
 " GetLatestVimScripts: 3026 1 :AutoInstall: PickAColor.vim
 " vim:foldmethod=marker
